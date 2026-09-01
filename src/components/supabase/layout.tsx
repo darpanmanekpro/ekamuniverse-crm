@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Notification } from "@/components/admin/notification";
 import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
+import companyLogo from "@/components/atomic-crm/root/logos/EkamUniverse-Light.png";
 
 export const Layout = ({ children }: React.PropsWithChildren) => {
   const { darkModeLogo, title } = useConfigurationContext();
@@ -13,6 +14,13 @@ export const Layout = ({ children }: React.PropsWithChildren) => {
           <div className="relative z-20 flex items-center text-lg font-medium">
             <img className="h-6 mr-2" src={darkModeLogo} alt={title} />
             {title}
+          </div>
+          <div className="relative z-20 flex flex-1 items-center justify-center p-8">
+            <img
+              src={companyLogo}
+              alt="Ekam Universe"
+              className="max-w-[360px] w-full object-contain drop-shadow-md"
+            />
           </div>
         </div>
         <div className="lg:p-8">

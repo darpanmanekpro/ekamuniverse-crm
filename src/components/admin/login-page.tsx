@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/admin/text-input";
 import { Notification } from "@/components/admin/notification";
 import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext.tsx";
+import companyLogo from "@/components/atomic-crm/root/logos/EkamUniverse-Light.png";
 
 /**
  * Login page displayed when authentication is enabled and the user is not authenticated.
@@ -60,6 +61,13 @@ export const LoginPage = (props: { redirectTo?: string }) => {
           <div className="relative z-20 flex items-center text-lg font-medium">
             <img className="h-6 mr-2" src={darkModeLogo} alt={title} />
             {title}
+          </div>
+          <div className="relative z-20 flex flex-1 items-center justify-center p-8">
+            <img
+              src={companyLogo}
+              alt="Ekam Universe"
+              className="max-w-[360px] w-full object-contain drop-shadow-md"
+            />
           </div>
         </div>
         <div className="flex flex-col justify-center w-full p-4 lg:p-8">
