@@ -128,20 +128,22 @@
             let refresh_token = urlSearchParams.get('refresh_token');
             let type = urlSearchParams.get('type');
             let code = urlSearchParams.get('code');
+            let token_hash = urlSearchParams.get('token_hash');
 
-            if (!access_token && !code) {
+            if (!access_token && !code && !token_hash) {
                 urlSearchParams = new URLSearchParams(window.location.search);
                 access_token = urlSearchParams.get('access_token');
                 refresh_token = urlSearchParams.get('refresh_token');
                 type = urlSearchParams.get('type');
                 code = urlSearchParams.get('code');
+                token_hash = urlSearchParams.get('token_hash');
             }
 
-            return { access_token, refresh_token, type, code };
+            return { access_token, refresh_token, type, code, token_hash };
         };
 
         function interceptAuthCallback() {
-            const { access_token, refresh_token, type, code } = getUrlParams();
+            const { access_token, refresh_token, type, code, token_hash } = getUrlParams();
             // Get root path without auth-callback.html
             const pathname = window.location.pathname.replace(/\/+auth-callback\.html.*$/, '/');
             const rootUrl = window.location.origin + (pathname.endsWith('/') ? pathname : pathname + '/');
@@ -150,6 +152,8 @@
                 window.location.replace(`${rootUrl}#/set-password?access_token=${encodeURIComponent(access_token)}&refresh_token=${encodeURIComponent(refresh_token || '')}&type=${encodeURIComponent(type || 'invite')}`);
             } else if (code) {
                 window.location.replace(`${rootUrl}#/set-password?code=${encodeURIComponent(code)}&type=${encodeURIComponent(type || 'invite')}`);
+            } else if (token_hash) {
+                window.location.replace(`${rootUrl}#/set-password?token_hash=${encodeURIComponent(token_hash)}&type=${encodeURIComponent(type || 'invite')}`);
             } else {
                 window.location.replace(`${rootUrl}#/login`);
             }

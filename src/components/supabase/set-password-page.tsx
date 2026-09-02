@@ -28,7 +28,7 @@ export const SetPasswordPage = () => {
   const [, { mutateAsync: setPassword }] = useSetPassword();
 
   useEffect(() => {
-    // Check if a code parameter is in URL
+    // Check if a code or token_hash parameter is in URL
     const searchParams = new URLSearchParams(window.location.search);
     const hashParams = new URLSearchParams(
       window.location.hash.includes("?")
@@ -36,6 +36,22 @@ export const SetPasswordPage = () => {
         : "",
     );
     const code = searchParams.get("code") || hashParams.get("code");
+    const token_hash =
+      searchParams.get("token_hash") || hashParams.get("token_hash");
+    const type = searchParams.get("type") || hashParams.get("type") || "invite";
+
+    if (token_hash) {
+      getSupabaseClient()
+        .auth.verifyOtp({ token_hash, type: type as any })
+        .then(({ data, error }) => {
+          if (!error && data?.session) {
+            setHasSession(true);
+          }
+          setCheckingSession(false);
+        })
+        .catch(() => setCheckingSession(false));
+      return;
+    }
 
     if (code) {
       getSupabaseClient()
