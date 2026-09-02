@@ -109,10 +109,12 @@ export const getAuthProvider = (): AuthProvider => {
       return baseAuthProvider.logout(params);
     },
     checkAuth: async (params) => {
-      // Users are on the set-password page, nothing to do
+      // Users are on the set-password page or auth-callback, nothing to do
       if (
         window.location.pathname === "/set-password" ||
-        window.location.hash.includes("#/set-password")
+        window.location.hash.includes("#/set-password") ||
+        window.location.pathname === "/auth-callback" ||
+        window.location.hash.includes("#/auth-callback")
       ) {
         return;
       }

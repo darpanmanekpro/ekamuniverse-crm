@@ -249,6 +249,7 @@ const DesktopAdmin = (
           element={<ConfirmationRequired />}
         />
         <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
+        <Route path="auth-callback" element={<SetPasswordPage />} />
         <Route
           path={ForgotPasswordPage.path}
           element={<ForgotPasswordPage />}
@@ -313,6 +314,7 @@ const MobileAdmin = (
             element={<ConfirmationRequired />}
           />
           <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
+          <Route path="auth-callback" element={<SetPasswordPage />} />
           <Route
             path={ForgotPasswordPage.path}
             element={<ForgotPasswordPage />}
