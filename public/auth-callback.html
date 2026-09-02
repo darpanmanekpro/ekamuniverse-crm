@@ -127,23 +127,31 @@
             let access_token = urlSearchParams.get('access_token');
             let refresh_token = urlSearchParams.get('refresh_token');
             let type = urlSearchParams.get('type');
+            let code = urlSearchParams.get('code');
 
-            if (!access_token) {
+            if (!access_token && !code) {
                 urlSearchParams = new URLSearchParams(window.location.search);
                 access_token = urlSearchParams.get('access_token');
                 refresh_token = urlSearchParams.get('refresh_token');
                 type = urlSearchParams.get('type');
+                code = urlSearchParams.get('code');
             }
 
-            return { access_token, refresh_token, type };
+            return { access_token, refresh_token, type, code };
         };
 
         function interceptAuthCallback() {
-            const { access_token, refresh_token, type } = getUrlParams();
+            const { access_token, refresh_token, type, code } = getUrlParams();
+            // Get root path without auth-callback.html
+            const pathname = window.location.pathname.replace(/\/+auth-callback\.html.*$/, '/');
+            const rootUrl = window.location.origin + (pathname.endsWith('/') ? pathname : pathname + '/');
+
             if (access_token) {
-                window.location.href = `./#/set-password?access_token=${encodeURIComponent(access_token)}&refresh_token=${encodeURIComponent(refresh_token || '')}&type=${encodeURIComponent(type || '')}`;
+                window.location.replace(`${rootUrl}#/set-password?access_token=${encodeURIComponent(access_token)}&refresh_token=${encodeURIComponent(refresh_token || '')}&type=${encodeURIComponent(type || 'invite')}`);
+            } else if (code) {
+                window.location.replace(`${rootUrl}#/set-password?code=${encodeURIComponent(code)}&type=${encodeURIComponent(type || 'invite')}`);
             } else {
-                window.location.href = `./#/login`;
+                window.location.replace(`${rootUrl}#/login`);
             }
         }
     

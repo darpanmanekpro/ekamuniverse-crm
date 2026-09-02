@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Form, required, useNotify, useTranslate } from "ra-core";
+import { useEffect, useState } from "react";
+import { Form, required, useNotify, useRedirect, useTranslate } from "ra-core";
 import { useSetPassword, useSupabaseAccessToken } from "ra-supabase-core";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/admin/text-input";
 import { Layout } from "@/components/supabase/layout";
+import { getSupabaseClient } from "@/components/atomic-crm/providers/supabase/supabase";
 
 interface SetPasswordFormData {
   password: string;
@@ -12,15 +13,53 @@ interface SetPasswordFormData {
 
 export const SetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
 
-  const access_token = useSupabaseAccessToken();
+  const access_token = useSupabaseAccessToken({ redirectTo: false });
   const refresh_token = useSupabaseAccessToken({
     parameterName: "refresh_token",
+    redirectTo: false,
   });
 
   const notify = useNotify();
+  const redirect = useRedirect();
   const translate = useTranslate();
   const [, { mutateAsync: setPassword }] = useSetPassword();
+
+  useEffect(() => {
+    // Check if a code parameter is in URL
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(
+      window.location.hash.includes("?")
+        ? window.location.hash.split("?")[1]
+        : "",
+    );
+    const code = searchParams.get("code") || hashParams.get("code");
+
+    if (code) {
+      getSupabaseClient()
+        .auth.exchangeCodeForSession(code)
+        .then(({ data, error }) => {
+          if (!error && data?.session) {
+            setHasSession(true);
+          }
+          setCheckingSession(false);
+        })
+        .catch(() => setCheckingSession(false));
+      return;
+    }
+
+    getSupabaseClient()
+      .auth.getSession()
+      .then(({ data }) => {
+        if (data?.session) {
+          setHasSession(true);
+        }
+        setCheckingSession(false);
+      })
+      .catch(() => setCheckingSession(false));
+  }, []);
 
   const validate = (values: SetPasswordFormData) => {
     if (values.password !== values.confirmPassword) {
@@ -32,9 +71,23 @@ export const SetPasswordPage = () => {
     return {};
   };
 
-  if (!access_token || !refresh_token) {
+  const hasAuth = Boolean((access_token && refresh_token) || hasSession);
+
+  if (checkingSession && !access_token) {
+    return (
+      <Layout>
+        <p className="text-center text-muted-foreground">
+          {translate("ra.page.loading", { _: "Loading..." })}
+        </p>
+      </Layout>
+    );
+  }
+
+  if (!hasAuth && !checkingSession) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Missing access_token or refresh_token for set password");
+      console.error(
+        "Missing access_token, refresh_token, or session for set password",
+      );
     }
     return (
       <Layout>
@@ -46,11 +99,23 @@ export const SetPasswordPage = () => {
   const submit = async (values: SetPasswordFormData) => {
     try {
       setLoading(true);
-      await setPassword({
-        access_token,
-        refresh_token,
-        password: values.password,
-      });
+      if (access_token && refresh_token) {
+        await setPassword({
+          access_token,
+          refresh_token,
+          password: values.password,
+        });
+      } else {
+        const { error } = await getSupabaseClient().auth.updateUser({
+          password: values.password,
+        });
+        if (error) throw error;
+        notify("ra-supabase.set_password.success", {
+          type: "success",
+          messageArgs: { _: "Password updated successfully" },
+        });
+        redirect("/");
+      }
     } catch (error: any) {
       notify(
         typeof error === "string"
