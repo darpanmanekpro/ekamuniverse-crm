@@ -150,6 +150,25 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <script>
       (function () {
+        // Handle PKCE flow: Supabase redirects with ?code=xxx as a query param
+        var search = window.location.search;
+        if (search && search.indexOf("code=") !== -1) {
+          var qp = new URLSearchParams(search);
+          var code = qp.get("code");
+          if (code) {
+            // Replace the full URL to remove ?code= from the query string
+            // and route into the SPA's set-password page
+            window.location.replace(
+              window.location.origin +
+                window.location.pathname +
+                "#/set-password?code=" +
+                encodeURIComponent(code),
+            );
+            return; // stop further execution
+          }
+        }
+
+        // Handle implicit flow: Supabase redirects with #access_token=xxx
         var hash = window.location.hash;
         if (
           hash &&
